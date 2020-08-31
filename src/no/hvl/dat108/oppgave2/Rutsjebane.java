@@ -25,14 +25,14 @@ public class Rutsjebane {
 			}
 			
 			burgerKo.add(verdi);
-
+			
 			System.out.println(Thread.currentThread().getName() + " legger på " + "hamburger (" + verdi + ")" + " => "
 					+ burgerKo.toString());
 
 			verdi++;
 
 			// sier ifra til servitør at nå kan den ta fra kø
-			notifyAll();
+			notify();
 
 			// Tilfeldig sleeping mellom 2 og 6 sekunder.
 			Thread.sleep(tilfeldigSekunder);
@@ -56,7 +56,7 @@ public class Rutsjebane {
 								burgerKo.toString());
 
 			// Vekker kokke-tråden
-			notifyAll();
+			notify();
 
 			// og venter tilfeldig antall sekunder, mellom 2 og 6
 			Thread.sleep(tilfeldigSekunder);

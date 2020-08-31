@@ -24,9 +24,6 @@ public class HamburgerKlient {
 		kokk2.start();
 		kokk3.start();
 		servitor2.start();
-//		
-//		kokk1.join();
-//		servitor1.join();
 
 	}
 
