@@ -2,6 +2,9 @@ package no.hvl.dat108.oppgave2;
 
 import java.util.LinkedList;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Rutsjebane {
 	
@@ -11,6 +14,9 @@ public class Rutsjebane {
 	
 	// Tilfeldig antall sekunder i millisekunder
 	int tilfeldigSekunder = ThreadLocalRandom.current().nextInt(500, 2000);
+	
+	private Lock laas = new ReentrantLock();
+	private Condition lagtTilBurger = laas.newCondition();
 	
 	// Funksjonen som kokk-tråden kaller
 	public synchronized void leggTilBurger() throws InterruptedException {
