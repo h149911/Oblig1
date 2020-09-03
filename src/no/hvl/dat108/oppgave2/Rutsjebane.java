@@ -2,70 +2,83 @@ package no.hvl.dat108.oppgave2;
 
 import java.util.LinkedList;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class Rutsjebane {
-	
+
 	// En liste som kokk(legger til) og servitør(tar ut) deler
 	LinkedList<Integer> burgerKo = new LinkedList<>();
 	int maksAntBurgere = 5;
-	
+
 	// Tilfeldig antall sekunder i millisekunder
-	int tilfeldigSekunder = ThreadLocalRandom.current().nextInt(500, 2000);
+	int tilfeldigSekunder = ThreadLocalRandom.current().nextInt(500, 1000);
 	
-	private Lock laas = new ReentrantLock();
-	private Condition lagtTilBurger = laas.newCondition();
-	
+	private Object lock = new Object();
+
 	// Funksjonen som kokk-tråden kaller
 	public synchronized void leggTilBurger() throws InterruptedException {
-		int verdi = 1;
+		int burger = 1;
 
 		while (true) {
-			// Kokken venter når listen er full
-			while (burgerKo.size() == maksAntBurgere) {
-				System.out.println("###" + Thread.currentThread().getName()
-						+ " er klar med en hamburger, men rutsjebanen er full. Venter! ###");
-			wait();
-			}
-			
-			burgerKo.add(verdi);
-			
-			System.out.println(Thread.currentThread().getName() + " legger på " + "hamburger (" + verdi + ")" + " => "
-					+ burgerKo.toString());
-
-			verdi++;
-
-			// sier ifra til servitør at nå kan den ta fra kø
-			notify();
-
-			// Tilfeldig sleeping mellom 2 og 6 sekunder.
+			// venter tilfeldig antall sekunder, mellom 2 og 6
 			Thread.sleep(tilfeldigSekunder);
+
+				// Kokken venter når listen er full
+				while (burgerKo.size() == maksAntBurgere) {
+					try {
+						System.out.println("###" + Thread.currentThread().getName()
+								+ " er klar med en hamburger, men rutsjebanen er full. Venter! ###");
+						wait();
+					} catch (InterruptedException e) {
+					}
+				}
+			
+			
+				// Legger til burger
+				burgerKo.add(burger);
+
+				// skriver ut en melding
+				System.out.println(Thread.currentThread().getName() + " legger på " + "hamburger (" + burger + ")"
+						+ " => " + burgerKo.toString());
+
+				// Øker verdi
+				burger++;
+
+				// sier ifra til servitør at nå kan den ta fra kø
+				notifyAll();
+
 		}
 	}
 
 	// funksjonen som servitør-tråden kaller
-	public synchronized void taBurger() throws InterruptedException {
+	public void taBurger() throws InterruptedException {
 
 		while (true) {
-			// Servitøren venter når burgerkøen er tom
-			while (burgerKo.size() == 0) {
-				System.out.println("###" + Thread.currentThread().getName()
-						+ " vil ta en hamburger, men rutsjebanen er tom. Venter! ###");
-			wait();
-			}
-			// Tar første burger som er laget.
-			int ta = burgerKo.removeFirst();
 
-			System.out.println(Thread.currentThread().getName() + " tar av hamburger (" + ta + ") => " +
-								burgerKo.toString());
-
-			// Vekker kokke-tråden
-			notify();
-
-			// og venter tilfeldig antall sekunder, mellom 2 og 6
+			// venter tilfeldig antall sekunder, mellom 2 og 6
 			Thread.sleep(tilfeldigSekunder);
+
+			synchronized (this) {
+
+				// Servitøren venter når burgerkøen er tom
+				while (burgerKo.size() == 0) {
+					try {
+						System.out.println("###" + Thread.currentThread().getName()
+								+ " vil ta en hamburger, men rutsjebanen er tom. Venter! ###");
+						wait();
+					} catch (InterruptedException e) {
+					}
+				}
+
+				// Tar første burger som er laget.
+				int ta = burgerKo.removeFirst();
+
+				System.out.println(
+						Thread.currentThread().getName() + " tar av hamburger (" + ta + ") => " + burgerKo.toString());
+
+				// sier ifra til servitør at nå kan den ta fra kø
+				notifyAll();
+			}
 		}
+
 	}
 }
